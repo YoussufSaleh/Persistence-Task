@@ -53,7 +53,7 @@ while 1
   baseRect = [0 0 300 600];
   % centre this rectangle in the middle of the screen
   RedCentre = CenterRectOnPointd(baseRect,xCenter+450,yCenter);
-  fifty_pence=imread(ex.imageFiles{2});
+  twenty_pence=imread(ex.imageFiles{2});
   RectColor = [1 0 0];
 
   
@@ -77,8 +77,8 @@ while 1
     Screen(window, 'TextFont',  'Arial');  % and
     DrawFormattedText(window,test,'center',100,[0,200,255]);
     Screen('FrameRect',window,RectColor,RedCentre);
-    ImTexture=Screen('MakeTexture',window,fifty_pence);
-    Screen('DrawTexture',window,ImTexture,[],scr.imageSize{1}/2);
+    ImTexture=Screen('MakeTexture',window,twenty_pence);
+    Screen('DrawTexture',window,ImTexture,[],[]);
     Screen('Flip',window);
     FillRed = [590 350 200 100];
     Screen('FillRect',window,RectColor,[RedCentre(1) RedCentre(2)+600-counter ...
@@ -88,7 +88,7 @@ while 1
     
   DrawFormattedText(window,'not bad, keep going!','center',100,[0,200,255]);
   Screen('FrameRect',window,RectColor,RedCentre);    
-    ImTexture=Screen('MakeTexture',window,fifty_pence);
+    ImTexture=Screen('MakeTexture',window,twenty_pence);
     Screen('DrawTexture',window,ImTexture,[],[]);
     Screen('Flip',window);
     FillRed = [590 350 200 100];

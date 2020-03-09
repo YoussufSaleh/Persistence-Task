@@ -124,7 +124,7 @@ function tr=doTrial(scr, el, ex, tr)
     
     % cue image, & foreperiod
     drawRings(scr,pa);                  
-	    src  = [0 0 scr.imageSize{1}]; % source rectangle (px)
+	    src  = [0 0 scr.imageSize{i}]; % source rectangle (px)
 	tpos = scr.centre;             % location of centre of image on screen
     drc  = [tpos tpos] + ...       % destination rectangle 
 	       [-0.5 -0.5 0.5 0.5].*[scr.imageSize{1} scr.imageSize{1}];
