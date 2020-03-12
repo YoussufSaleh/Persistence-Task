@@ -76,10 +76,7 @@ while 1
     Screen(window, 'TextSize', 42);        % default text font size
     Screen(window, 'TextFont',  'Arial');  % and
     DrawFormattedText(window,test,'center',100,[0,200,255]);
-    Screen('FrameRect',window,RectColor,RedCentre);
-    ImTexture=Screen('MakeTexture',window,twenty_pence);
-    Screen('DrawTexture',window,ImTexture,[],[]);
-    Screen('Flip',window);
+       
     FillRed = [590 350 200 100];
     Screen('FillRect',window,RectColor,[RedCentre(1) RedCentre(2)+600-counter ...
       RedCentre(3) RedCentre(4)]);
