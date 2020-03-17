@@ -1,0 +1,14 @@
+D = transpIndex(result.data);
+plot(squeeze(D.pressTime)');
+% visually represent the number of key presses over time with the impulse
+% time demonstrated 
+times=squeeze(D.pressTime)';
+impulseTime=squeeze(D.impulseTime)';
+
+for i = 1:size(D.pressTime,2)
+subplot(2,3,i);
+plot(times(:,i),'color','b');
+hold on 
+plot(ones(50,1)*impulseTime(i),1:50,'--','Color','r');
+hold off
+end

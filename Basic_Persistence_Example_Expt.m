@@ -17,21 +17,22 @@ ex.useSqueezy         = false;          % Change to 1 to use handles! whether or
 ex.useEyelink         = false;         % load eye tracker?
 
 %% STRUCTURE
-ex.trialVariables.trialtype = 0;
+ex.trialVariables.rewardIndex   = [1,2,3];
+ex.trialVariables.impulseFactor = [1,2,3,4];
+
 ex.blockLen           = 48;  % number of  trials within each block.
 ex.blocks             = 2;   % How many blocks are there? Note that calibration and practice phases are not blocks.
 ex.blocktype          = 1;   % all blocks same =1
 ex.type               = 'Grit_Task';  % put your experiment name here.
 ex.practiceTrials     = 3;
-
+ex.exitkey = KbName('Q');
 % Trial variables are combined to make a factorial design.
 % This means that blockLen must be a multiple of the total
 % number of factors - in this case 2 possible targetPos, and 3 possible foreperiods:
 ex.rewardInStake             = [10 20 50];    % low or high
 ex.rewardIndex               = [1 2 3];    % low or high
-ex.impulseFactor                = [1 2 3 4];     % factor by which progress is reduced
-ex.blockVariables.blockType     = 1;             % between-block variables (none)
-
+ex.blockVariables.blockType  = 1;             % between-block variables (none)
+ex.gain                      = 3;           % number of pixels a bar will rise per key press
 % display params
 ex.barPos           = [1140,225,1440,825]; % position of bar on screen
 ex.bgColour         = [  0   0   0];   % background colour (RGB)
@@ -43,6 +44,7 @@ ex.forceColour      = [255 0 0];       % bar colour for force, red
 ex.imageFiles = { '10_pence.jpg'
   '20_pence.jpg'
   '50_pence.jpg' };
+ex.promptPos       = [500 500];
 %% TIMINGS (all in seconds)
 ex.calibrationDuration  = 5;   % Time for calibration squeeze
 % Maximum time to wait for a decision
@@ -53,6 +55,7 @@ ex.responseDuration     = 5;   % Time allowed to obtain require force on practic
 ex.delayAfterResponse   = 1;   % Time after squeeze period ends, and before reward appears (practice and work)
 ex.rewardDuration       = 3;   % Time from when reward appears, until screen blanks (practice and work-yes)
 ex.trialTime            = 10;
+ex.generateImpulseTime  = @()3+5*rand; % 10+10*rand
 % this has units of SAMPLES. How many samples Need to be above the yellow line?
 % currently sampling at 500 Hz, so this is 2 seconds.
 ex.minimumAcceptableSqueezeTime = 1000;
@@ -80,79 +83,72 @@ function tr=doTrial(scr, el, ex, tr)
 % This function is run once for each trial in the experiment.
 % combine trial-wise and experiment-wise parameters.
 
-counter = 0 ; % set a counter which will log the key presses and be used to 
-% determine the visual feedback
-  trialTime = GetSecs+ ex.trialTime; % how long will each trial be
-  pa = combineStruct(ex, tr);
-  tr=LogEvent(pa, el, tr,'starttime');
-  tr.key=[]; tr.R=pa.R_INCOMPLETE; % start with trial being incomplete
 
+impulsePresent = 0; % this is the switch that is manipulated to ensure that
+% each inpulse injected is only done so once per trial. see line ~ 130 for
+% this. Impulses can only be applied if impulse = 0, Once an impulse is 
+% applied, this switches to 1. 
+
+
+counter = 0 ; % set a counter which will log the key presses and be used to
+tr.pressTime = [];
+tr.pressKey  = []; 
+tr.releaseTime = [];
+% determine the visual feedback
+pa = combineStruct(ex, tr);
+tr=LogEvent(pa, el, tr,'startTime');
+tr.key=[]; tr.R=pa.R_INCOMPLETE; % start with trial being incomplete
+tr.impulseTime = pa.generateImpulseTime(); % call function to generate random number to store
+EXIT = false;
+
+
+while  GetSecs < pa.trialTime + tr.startTime
   
-  while  GetSecs<trialTime
-    
-    while KbCheck; end %
-    [ keyIsDown, timeSecs, keyCode] = KbCheck; % check the state of they keyboard
-    keyCode = find(keyCode, 1); % what is the key code and can we store this?
-    if keyIsDown 
-      counter = counter + 1;
-    
-    
+%   while KbCheck; end %
+  
+  [ keyIsDown, timeSecs, keyCode] = KbCheck; % check the state of they keyboard
+%   keyCode = find(keyCode, 1); % what is the key code and can we store this?
+  if keyCode(pa.exitkey), EXIT = true; end   % check for ESCAPE
+
+  if keyIsDown
+    counter = counter + 1;
+    tr.pressTime = [tr.pressTime,GetSecs-tr.startTime];
+    tr.pressKey  = [tr.pressKey,keyCode];
+
     barPos = ex.barPos;
     src  = [0 0 scr.imageSize{1}]; % source rectangle (px)
     tpos = scr.centre;             % location of centre of image on screen
     drc  = [tpos tpos] + ...       % destination rectangle
       [-0.5 -0.5 0.5 0.5].*[scr.imageSize{1} scr.imageSize{1}];
-    Screen('DrawTexture',scr.w, scr.imageTexture(1), src, drc); % draw image
+    Screen('DrawTexture',scr.w, scr.imageTexture(pa.rewardIndex), src, drc); % draw image
     Screen('FrameRect',scr.w,ex.forceColour,barPos); % draw bar
-    Screen('FillRect',scr.w,ex.forceColour,[barPos(1) barPos(2)+600-(counter*1.5) ...
+    Screen('FillRect',scr.w,ex.forceColour,[barPos(1) barPos(2)+600-(counter*pa.gain) ...
       barPos(3) barPos(4)]);
-    
-    
-    
-    % clear all saccades made so far from buffer: we only want to collect
-    % saccades from now on, when deciding if the target has been hit.
-    % if(pa.useEyelink) flushEyelinkQueue(el); end;
-    
-    % reveal the target
-    % drawRects(scr,pa);
-    % drawRect(scr,pa,pa.targetPos,pa.forceColour);
-    % tr=LogEvent(pa, el, tr,'starttarget');
-    if GetSecs==trialTime
-    
-    tr=LogEvent(pa, el, tr, 'endResponse');  % log that the saccade was accepted
-    Screen('Flip', scr.w);WaitSecs(ex.ITI)
-    end
+    Screen('Flip',scr.w);
 
-    
-    % tr.rt=tr.saccadeaccepted-tr.starttarget;     % calculate RT from events
-    if tr.R==pa.R_INCOMPLETE                     % flag the trial as complete.
-      %   tr.R   = tr.rt;
-      
-      escapeKey = KbName('ESCAPE');
-      
-      if keyCode == escapeKey
-        break;
-      end
-      
+
       % If the user holds down a key, KbCheck will report multiple events.
       % To condense multiple 'keyDown' events into a single event, we wait until all
       % keys have been released.
       KbReleaseWait;
-      
-    end
+      tr.releaseTime = [tr.releaseTime,GetSecs-tr.startTime]; % log time of key release
+    
+  end
+  if GetSecs > tr.startTime+tr.impulseTime && impulsePresent == 0;
+    counter = counter/pa.impulseFactor;
+    drawTextCentred(scr,'Whoops!',pa.fgColour,pa.promptPos);
+    impulsePresent = 1;
   end
   
+ if keyCode == pa.exitkey
+    break;
+ end
+  
 end
-  Screen('Flip', scr.w);
+drawTextCentred(scr,'You won X pence',pa.fgColour)
+Screen('Flip',scr.w);
+WaitSecs(1);
 
-%
-% function buttonpress
-%
-% while KbCheck; end % wait for all the keys to be released
-% while 1
-%   % Check the state of the keyboard.
-%   [ keyIsDown, timeSecs, keyCode] = KbCheck;
-%    % if Key is down then counter = counter + 1
-%   counter = 0
-%   keyCode = find(keyCode, 1);
-%   counter = counter + 1;
+ 
+      
+tr.R=1;
