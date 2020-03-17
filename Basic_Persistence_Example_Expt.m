@@ -1,3 +1,6 @@
+clear all;
+close all;
+
 function [result ] = Basic_Persistence_Example_Expt(params)
 % Example script for an eye tracking task.
 % Basic Prosaccades to left or right,
@@ -32,14 +35,16 @@ ex.exitkey = KbName('Q');
 ex.rewardInStake             = [10 20 50];    % low or high
 ex.rewardIndex               = [1 2 3];    % low or high
 ex.blockVariables.blockType  = 1;             % between-block variables (none)
-ex.gain                      = 3;           % number of pixels a bar will rise per key press
+ex.gain                      = 4;           % number of pixels a bar will rise per key press
 % display params
 ex.barPos           = [1140,225,1440,825]; % position of bar on screen
 ex.bgColour         = [  0   0   0];   % background colour (RGB)
 ex.fgColour         = [255 255 255];   % text colour
 ex.ITI              = 0.500;           % seconds before trial
 ex.RectColor        = [255 0 0];
-ex.forceColour      = [255 0 0];       % bar colour for force, red
+ex.forceColour      = [255 0 0]; 
+ex.yellow        = [255 255   0];   % wider (current) rung
+% bar colour for force, red
 % image files get automatically read into psychtoolbox textures, scr.imageTexture()
 ex.imageFiles = { '10_pence.jpg'
   '20_pence.jpg'
@@ -78,6 +83,30 @@ result = RunExperiment( @doTrial, ex, params);
 
 return
 
+%% Start of block:
+% this also controls calibraton and practice at the start of the experiment
+function blockfn(scr, el, ex, tr);
+global  totalReward
+totalReward = 0; % start each block with zero total reward
+
+if tr.block == 1 % display 'start of experiment' after last practice trial
+  
+  drawTextCentred(scr, 'When you are ready, press any key to continue',ex.fgColour);
+  Screen('Flip',scr.w);
+  waitForKeypress(); % wait for a key to be pressed before starting (defined at end of this script)
+         
+
+else  % starting a new block of the main experiment
+  
+  drawTextCentred(scr, 'End of block.', ex.fgColour, scr.centre +[0, -300])
+  drawTextCentred(scr, 'When you are ready, press any key to continue', ex.fgColour)
+  Screen('Flip',scr.w);
+  waitForKeypress(); 
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function tr=doTrial(scr, el, ex, tr)
 % This function is run once for each trial in the experiment.
@@ -96,30 +125,38 @@ tr.pressKey  = [];
 tr.releaseTime = [];
 % determine the visual feedback
 pa = combineStruct(ex, tr);
-tr=LogEvent(pa, el, tr,'startTime');
+
+% drawTextCentred(scr,'Press Spacebar to start trial',pa.fgColour)
+% Screen('Flip',scr.w);
+% waitForKeypress();
+
 tr.key=[]; tr.R=pa.R_INCOMPLETE; % start with trial being incomplete
 tr.impulseTime = pa.generateImpulseTime(); % call function to generate random number to store
 EXIT = false;
 
+barPos = ex.barPos;
+src  = [0 0 scr.imageSize{1}]; % source rectangle (px)
+tpos = scr.centre;             % location of centre of image on screen
+drc  = [tpos tpos] + ...       % destination rectangle
+  [-0.5 -0.5 0.5 0.5].*[scr.imageSize{1} scr.imageSize{1}];
+Screen('DrawTexture',scr.w, scr.imageTexture(pa.rewardIndex), src, drc); % draw image
+Screen('FrameRect',scr.w,ex.forceColour,barPos); % draw bar
+Screen('Flip',scr.w);
+tr=LogEvent(pa, el, tr,'startStim');
+WaitSecs(0.5);
+tr=LogEvent(pa, el, tr,'startTime');
+
 
 while  GetSecs < pa.trialTime + tr.startTime
   
-%   while KbCheck; end %
   
   [ keyIsDown, timeSecs, keyCode] = KbCheck; % check the state of they keyboard
-%   keyCode = find(keyCode, 1); % what is the key code and can we store this?
-  if keyCode(pa.exitkey), EXIT = true; end   % check for ESCAPE
+
 
   if keyIsDown
     counter = counter + 1;
     tr.pressTime = [tr.pressTime,GetSecs-tr.startTime];
     tr.pressKey  = [tr.pressKey,keyCode];
-
-    barPos = ex.barPos;
-    src  = [0 0 scr.imageSize{1}]; % source rectangle (px)
-    tpos = scr.centre;             % location of centre of image on screen
-    drc  = [tpos tpos] + ...       % destination rectangle
-      [-0.5 -0.5 0.5 0.5].*[scr.imageSize{1} scr.imageSize{1}];
     Screen('DrawTexture',scr.w, scr.imageTexture(pa.rewardIndex), src, drc); % draw image
     Screen('FrameRect',scr.w,ex.forceColour,barPos); % draw bar
     Screen('FillRect',scr.w,ex.forceColour,[barPos(1) barPos(2)+600-(counter*pa.gain) ...
@@ -131,13 +168,16 @@ while  GetSecs < pa.trialTime + tr.startTime
       % To condense multiple 'keyDown' events into a single event, we wait until all
       % keys have been released.
       KbReleaseWait;
-      tr.releaseTime = [tr.releaseTime,GetSecs-tr.startTime]; % log time of key release
-    
+     tr.releaseTime = [tr.releaseTime,GetSecs-tr.startTime]; % log time of key release
+     if keyCode(pa.exitkey), EXIT = true; end   % check for ESCAPE
+
   end
   if GetSecs > tr.startTime+tr.impulseTime && impulsePresent == 0;
     counter = counter/pa.impulseFactor;
-    drawTextCentred(scr,'Whoops!',pa.fgColour,pa.promptPos);
     impulsePresent = 1;
+  end
+  if impulsePresent ==1 && pa.impulseFactor ~=1 
+        drawTextCentred(scr,'Whoops!',pa.yellow,scr.centre + [400,-350]);
   end
   
  if keyCode == pa.exitkey
@@ -145,10 +185,34 @@ while  GetSecs < pa.trialTime + tr.startTime
  end
   
 end
-drawTextCentred(scr,'You won X pence',pa.fgColour)
 Screen('Flip',scr.w);
-WaitSecs(1);
+drawTextCentred(scr,'You won X pence',pa.fgColour)
+drawTextCentred(scr,'Total reward: XXX',pa.fgColour,scr.centre + [0,100])
+Screen('Flip',scr.w);
+WaitSecs(2);
 
- 
-      
+
+
+
+
 tr.R=1;
+
+function EXIT = waitForKeypress()
+% wait for a key to be pressed and released.
+spacepressed  = false;
+escapepressed = false;
+exitkey  = KbName('ESCAPE');
+spacekey = KbName('SPACE');
+
+while  ~spacepressed && ~escapepressed
+   [~,~,k]=KbCheck,  % get set of keys pressed
+   spacepressed  = k(spacekey);
+   escapepressed = k(exitkey); % is space or escape presesed?
+   WaitSecs(0.1); 
+end % wait for a key to be pressed before starting
+if escapepressed, EXIT = true; return; else, EXIT=false; end
+
+while KbCheck, WaitSecs(0.1); end  % (and wait for key release)
+return
+
+
