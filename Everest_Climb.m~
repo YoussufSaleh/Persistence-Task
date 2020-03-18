@@ -157,10 +157,10 @@
         tr.pressTime = [tr.pressTime,GetSecs-tr.startTime];
         tr.pressKey  = [tr.pressKey,keyCode];
         Screen('DrawTexture',scr.w, scr.imageTexture(pa.rewardIndex), src, drc); % draw image
-        Screen('FrameRect',scr.w,ex.forceColour,[barPos(1)-500 barPos(2) barPos(3)-500 barPos(4)]); % draw bar
+        Screen('FrameRect',scr.w,ex.forceColour,[pa.barPos]); % draw bar
 %         Screen('DrawLines',scr.w,[scr.centre(1) scr.centre(2);scr.centre(1)+counter scr.centre(2)+counter],20,ex.yellow);
-        Screen('FillRect',scr.w,ex.forceColour,[barPos(1)-500 barPos(2)+600-(counter*pa.gain) ...
-          barPos(3)-500 barPos(4)]);
+        Screen('FillRect',scr.w,ex.forceColour,[barPos(1) barPos(2)+600-(counter*pa.gain) ...
+          barPos(3) barPos(4)]);
         Screen('Flip',scr.w);
 
 
