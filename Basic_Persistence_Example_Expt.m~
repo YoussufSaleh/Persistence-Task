@@ -1,4 +1,4 @@
-                                                                                         
+                                                                                                                                     
 
     function [result ] = Basic_Persistence_Example_Expt(params)
     % Example script for an eye tracking task.
@@ -45,7 +45,7 @@
     ex.yellow        = [255 255   0];   % wider (current) rung
     % bar colour for force, red
     % image files get automatically read into psychtoolbox textures, scr.imageTexture()
-    ex.imageFiles = { '10_pence.jpg'
+    ex.imageFiles = { 'Castle_Ideal.jpg                                                                                '
       '20_pence.jpg'
       '50_pence.jpg' };
     ex.promptPos       = [500 500];

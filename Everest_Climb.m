@@ -45,9 +45,9 @@
     ex.yellow        = [255 255   0];   % wider (current) rung
     % bar colour for force, red
     % image files get automatically read into psychtoolbox textures, scr.imageTexture()
-    ex.imageFiles = { 'Images/10_pence.jpg'
-      'Images/20_pence.jpg'
-      'Images/50_pence.jpg' };
+    ex.imageFiles = { 'Images/everest.jpg'
+      'Images/everest.jpg'
+      'Images/everest.jpg' };
     ex.promptPos       = [500 500];
     %% TIMINGS (all in seconds)
     ex.calibrationDuration  = 5;   % Time for calibration squeeze
