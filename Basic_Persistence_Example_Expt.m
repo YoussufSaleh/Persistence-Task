@@ -11,7 +11,7 @@ function [result ] = Basic_Persistence_Example_Expt(params)
 %% SETUP
 ex.DEBUG              = false;         % debug mode - 2 trials per block, for testing.
 ex.skipScreenCheck    = 1;             % should be 0, but set to 1 if you get monitor warnings.
-ex.displayNumber      = 0;             % for multiple monitors
+ex.displayNumber      = 1;             % for multiple monitors
 ex.channel            = 0;             % Which data channel are you using for the handle?
 ex.useSqueezy         = false;          % Change to 1 to use handles! whether or not to use the squeezy devices
 ex.useEyelink         = false;         % load eye tracker?
@@ -34,7 +34,7 @@ ex.rewardIndex               = [1 2 3];    % low or high
 ex.blockVariables.blockType  = 1;             % between-block variables (none)
 ex.gain                      = 3;           % number of pixels a bar will rise per key press
 % display params
-ex.barPos           = [1140,225,1440,825]; % position of bar on screen
+ex.barPos           = [1740,225,2040,825]; % position of bar on screen if on lap top the first and third coordinates are to be subtracted by 300 pixels. 
 ex.bgColour         = [  0   0   0];   % background colour (RGB)
 ex.fgColour         = [255 255 255];   % text colour
 ex.ITI              = 0.500;           % seconds before trial
@@ -121,7 +121,7 @@ while  GetSecs < pa.trialTime + tr.startTime
     drc  = [tpos tpos] + ...       % destination rectangle
       [-0.5 -0.5 0.5 0.5].*[scr.imageSize{1} scr.imageSize{1}];
     Screen('DrawTexture',scr.w, scr.imageTexture(pa.rewardIndex), src, drc); % draw image
-    Screen('FrameRect',scr.w,ex.forceColour,barPos); % draw bar
+    Screen('FrameRect',scr.w,ex.forceColour,pa.barPos); % draw bar
     Screen('FillRect',scr.w,ex.forceColour,[barPos(1) barPos(2)+600-(counter*pa.gain) ...
       barPos(3) barPos(4)]);
     Screen('Flip',scr.w);
