@@ -1,4 +1,4 @@
-                                                                                                                                     
+                                                                                         
 
     function [result ] = Basic_Persistence_Example_Expt(params)
     % Example script for an eye tracking task.

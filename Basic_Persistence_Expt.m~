@@ -1,4 +1,5 @@
-                                                                                                                                     
+    clear all;
+    close all;
 
     function [result ] = Basic_Persistence_Example_Expt(params)
     % Example script for an eye tracking task.
@@ -103,6 +104,7 @@
       waitForKeypress();
 
     end
+    
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,6 +205,7 @@
     exitkey  = KbName('ESCAPE');
     spacekey = KbName('SPACE');
 
+
     while  ~spacepressed && ~escapepressed
        [~,~,k]=KbCheck,  % get set of keys pressed
        spacepressed  = k(spacekey);
@@ -212,4 +215,8 @@
     if escapepressed, EXIT = true; return; else, EXIT=false; end
 
     while KbCheck, WaitSecs(0.1); end  % (and wait for key release)
+
     return
+    end
+    end
+    end
